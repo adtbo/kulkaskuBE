@@ -32,7 +32,7 @@ router.route("/").post(async (req, res) => {
     );
     await newTransaction.save();
 
-    //sendEmail(req.body);
+    sendEmail(req.body);
 
     res.json("Transaction have been added");
   } catch (err) {
