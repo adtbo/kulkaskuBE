@@ -4,9 +4,15 @@ const Transaction = require("../model/transaction.model");
 const sendEmail = require("../services/checkout.services");
 
 router.route("/").post(async (req, res) => {
-  const newCustomer = req.body.customer;
+  let newCustomer = req.body.customer;
   if (!newCustomer?.phoneNumber) {
     return res.status(400).json("phone number is required");
+  }
+
+  if (newCustomer.phoneNumber[0] === "0") {
+    const phoneNumber = newCustomer.phoneNumber;
+    const newPhoneNumber = `62${phoneNumber.slice(1, phoneNumber.length)}`;
+    newCustomer.phoneNumber = newPhoneNumber;
   }
 
   const today = new Date();
@@ -14,9 +20,10 @@ router.route("/").post(async (req, res) => {
     .getFullYear()
     .toString()
     .slice(-2)}`;
+  const transactionId = `${newCustomer.phoneNumber.slice(-3)}${date}`;
   const newTransaction = new Transaction({
-    transactionId: `${newCustomer.phoneNumber.slice(-3)}${date}`,
-    phoneNumber: req.body.customer.phoneNumber,
+    transactionId: transactionId,
+    phoneNumber: newCustomer.phoneNumber,
     products: req.body.products,
   });
 
@@ -32,7 +39,11 @@ router.route("/").post(async (req, res) => {
     );
     await newTransaction.save();
 
-    sendEmail(req.body);
+    sendEmail({
+      customer: newCustomer,
+      products: req.body.products,
+      transactionId: transactionId,
+    });
 
     res.json("Transaction have been added");
   } catch (err) {

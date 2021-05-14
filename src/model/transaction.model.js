@@ -21,6 +21,11 @@ const productSchema = new Schema({
     type: Number,
     required: true,
   },
+  unit: {
+    type: String,
+    required: true,
+    trim: true,
+  },
 });
 
 const transactionSchema = new Schema(
